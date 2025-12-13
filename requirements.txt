@@ -23,5 +23,6 @@ jinja2
 python-multipart
 fsspec
 huggingface_hub
+from_root
 
 -e .
