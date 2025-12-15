@@ -4,7 +4,7 @@ import numpy as np
 import dill
 import yaml
 from pandas import DataFrame
-
+from huggingface_hub import hf_hub_download
 from breastcancerdiagnosis.logger.log import logging
 from breastcancerdiagnosis.exception.exception_handler import AppException
 
@@ -98,3 +98,30 @@ def drop_columns(df: DataFrame, cols: list) ->DataFrame:
 
     except Exception as e:
         raise AppException(e, sys) from e 
+    
+def download_file_from_hf(source_url: str, local_path: str) -> None:
+    """
+    Download file from huggingface hub
+    source_url: str url of the file to be downloaded
+    local_path: str location where the file is to be saved
+    """
+    try:
+        repo_type, repo_id_1, repo_id_2, filename = source_url.replace("hf://", "").split("/", 3,)[0:4]
+
+        logging.info(f"type {repo_type} repo {repo_id_1}/{repo_id_2} filename {filename}")
+        hf_hub_download(repo_id=f'{repo_id_1}/{repo_id_2}', filename=filename, repo_type='dataset', local_dir=os.path.dirname(local_path), local_dir_use_symlinks=False)
+
+    except Exception as e:
+        raise AppException(e, sys) from e
+    
+def create_directories(path_list: list) -> None:
+    """
+    Create list of directories
+    path_list: list of directory paths
+    """
+    try:
+        for path in path_list:
+            os.makedirs(path, exist_ok=True)
+
+    except Exception as e:
+        raise AppException(e, sys) from e
