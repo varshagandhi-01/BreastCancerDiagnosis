@@ -4,3 +4,33 @@ data_ingestion:
   root_dir: data/data_ingestion
   source_url: hf://datasets/scikit-learn/breast-cancer-wisconsin/breast_cancer.csv
   local_data_file: data.csv
+
+data_validation:
+  root_dir: data/data_validation
+  base_file: data/data_ingestion/data.csv
+  drift_report_file: drift_report.yaml
+  drift_threshold: 0.5
+
+data_transformation: 
+  root_dir: data/data_transformation
+  transformed_data_file: transformed_data.csv
+  preprocessor_object_file: preprocessor.pkl
+
+model_trainer:
+  root_dir: data/model_trainer
+  trained_model_file: model.pkl
+  expected_score: 0.9
+  overfitting_threshold: 0.1
+  
+model_evaluation:
+  root_dir: data/model_evaluation
+  model_comparison_file: model_comparison.yaml
+  change_threshold: 0.01
+
+model_pusher:
+  root_dir: data/model_pusher
+  saved_model_dir: saved_models
+  pusher_model_dir: deployed_models
+  pusher_preprocessor_dir: deployed_preprocessor
+  pusher_model_file: model.pkl
+  pusher_preprocessor_file: preprocessor.pkl

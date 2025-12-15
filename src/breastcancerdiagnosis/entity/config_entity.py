@@ -19,3 +19,29 @@ class DataIngestionConfig:
         )
     
 
+@dataclass
+class DataValidationConfig:
+    root_dir: str
+    report_file_path: str
+    drift_threshold: float
+
+    @classmethod
+    def from_yaml(cls, config_path: str) -> "DataValidationConfig":
+        config = read_yaml_file(config_path)
+        data_validation_config = config.get("data_validation", {})
+        return cls(
+            root_dir=data_validation_config.get("root_dir", ""),
+            drift_report_file=data_validation_config.get("drift_report_file", "")
+            drift_threshold=data_validation_config.get("drift_threshold", 0.0)
+        )
+    
+@dataclass
+class DataTransformationConfig:
+    root_dir: str
+    transformed_train_file_path: str
+    transformed_test_file_path: str
+    preprocessor_object_file_path: str
+
+    @classmethod
+    def from_yaml(cls, config_path: str) -> "DataTransformationConfig":
+        config = read_yaml_file(config
