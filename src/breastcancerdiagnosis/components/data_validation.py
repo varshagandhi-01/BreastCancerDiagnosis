@@ -59,9 +59,9 @@ class DataValidation:
             drift_report = {}
             drift_detected = False
             drop_columns = self._schema['drop_columns']
-            print(f"Drop columns: {drop_columns}")
+         
             base_dataframe = base_dataframe.drop(columns=drop_columns, errors='ignore')
-            print(f"Base dataframe columns after drop: {base_dataframe.columns}")
+        
             current_dataframe = current_dataframe.drop(columns=drop_columns, errors='ignore')
 
             for column in base_dataframe.columns:

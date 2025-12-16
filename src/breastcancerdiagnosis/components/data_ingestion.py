@@ -18,7 +18,6 @@ class DataIngestion:
 
     def initiate_data_ingestion(self) -> DataIngestionArtifact:
         try:
-            #os.makedirs(self.config.root_dir, exist_ok=True)
             feature_store_file_path = Path(os.path.join(self.config.root_dir, self.config.feature_store_dir))
             logging.info(f"Downloading data from {self.config.source_url} to {feature_store_file_path}")
             os.makedirs(feature_store_file_path, exist_ok=True)

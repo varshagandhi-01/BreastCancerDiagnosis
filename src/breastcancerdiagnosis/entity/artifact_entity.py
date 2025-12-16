@@ -14,9 +14,9 @@ class DataValidationArtifact:
 
 @dataclass
 class DataTransformationArtifact:
-    transformed_train_file_path: str
-    transformed_test_file_path: str
-    preprocessor_object_path: str
+    transformed_train_file_path: Path
+    transformed_test_file_path: Path
+    preprocessor_object_path: Path
 
 @dataclass
 class ClassificationMetricArtifact:

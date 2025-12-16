@@ -5,16 +5,17 @@ from pandas import DataFrame
 import numpy as np      
 from scipy.stats import f_oneway
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import PowerTransformer
+from sklearn.preprocessing import PowerTransformer, StandardScaler
 from sklearn.compose import ColumnTransformer
 from imblearn.combine import SMOTEENN
+from pathlib import Path    
 
 from breastcancerdiagnosis.exception.exception_handler import AppException
 from breastcancerdiagnosis.logger.log import logging
 from breastcancerdiagnosis.entity.config_entity import DataTransformationConfig
 from breastcancerdiagnosis.entity.artifact_entity import DataIngestionArtifact, DataValidationArtifact, DataTransformationArtifact
 from breastcancerdiagnosis.utils.main_utils import read_yaml_file, save_numpy_array_data, save_object
-from breastcancerdiagnosis.constants import SCHEMA_FILE_PATH
+from breastcancerdiagnosis.constants import SCHEMA_FILE_PATH, TARGET_COLUMN, TRANSFORMED_TRAIN_FILE_NAME, TRANSFORMED_TEST_FILE_NAME
 
 class DataTransformation:
     def __init__(self, data_transformation_config: DataTransformationConfig,
@@ -37,11 +38,8 @@ class DataTransformation:
 
     def get_data_transformer_object(self, transform_columns: list) -> Pipeline:
         try:
-            # Placeholder for actual data transformer object creation logic
-            # For example, this could be a sklearn Pipeline or ColumnTransformer
-            from sklearn.preprocessing import StandardScaler
-            from sklearn.pipeline import Pipeline
-
+            # Create the ColumnTransformer with appropriate transformations
+  
             num_features = transform_columns
             
             numeric_transformer = StandardScaler() 
@@ -97,7 +95,7 @@ class DataTransformation:
             test_df = self.read_data(self.data_ingestion_artifact.test_file_path)
 
             significant_features, not_significant_features = self.run_anova_test(
-                df=train_df, target_column=self._schema['target_column']
+                df=train_df, target_column=TARGET_COLUMN
             )
             transform_columns = significant_features
             logging.info(f"Columns to be transformed: {transform_columns}")
@@ -110,15 +108,15 @@ class DataTransformation:
             input_feature_train_df = train_df.drop(columns=not_significant_features, axis = 1)
             
             ''' Target feature extraction '''
-            input_feature_train_df = input_feature_train_df.drop(columns=[self._schema['target_column']], axis=1)
-            target_feature_train_df = train_df[self._schema['target_column']]
+            input_feature_train_df = input_feature_train_df.drop(columns=[TARGET_COLUMN], axis=1)
+            target_feature_train_df = train_df[TARGET_COLUMN]
 
             target_feature_train_df = target_feature_train_df.replace(self._schema['target_mapping'])
 
             ''' Test data '''
             input_feature_test_df = test_df.drop(columns=not_significant_features, axis = 1)
-            input_feature_test_df = input_feature_test_df.drop(columns=[self._schema['target_column']], axis=1)
-            target_feature_test_df = test_df[self._schema['target_column']]
+            input_feature_test_df = input_feature_test_df.drop(columns=[TARGET_COLUMN], axis=1)
+            target_feature_test_df = test_df[TARGET_COLUMN]
             target_feature_test_df = target_feature_test_df.replace(self._schema['target_mapping'])
 
             # Fitting and transforming the training data
@@ -142,17 +140,25 @@ class DataTransformation:
             train_arr =  np.c_[input_feature_train_final, np.array(target_feature_train_final)]
             test_arr =  np.c_[input_feature_test_final, np.array(target_feature_test_final)]
             logging.info("Saved transformed training and testing arrays")
+
+            transformed_train_path = Path(os.path.join(self.data_transformation_config.root_dir, self.data_transformation_config.transformed_data_dir,
+                                                     TRANSFORMED_TRAIN_FILE_NAME))
+            transformed_test_path = Path(os.path.join(self.data_transformation_config.root_dir, self.data_transformation_config.transformed_data_dir,
+                                                     TRANSFORMED_TEST_FILE_NAME))
+            preprocessor_object_path = Path(os.path.join(self.data_transformation_config.root_dir, self.data_transformation_config.transformed_data_dir,
+                                                       self.data_transformation_config.preprocessor_object_file))   
             # Saving the transformed data
-            save_numpy_array_data(self.data_transformation_config.transformed_train_path, array=train_arr)
-            save_numpy_array_data(self.data_transformation_config.transformed_test_path, array=test_arr)
+            save_numpy_array_data(transformed_train_path, array=train_arr)
+            save_numpy_array_data(transformed_test_path, array=test_arr)
             # Saving the preprocessor object
-            save_object(self.data_transformation_config.preprocessor_obj_file_path, obj=preprocessor)
+            save_object(preprocessor_object_path, obj=preprocessor)
+
             logging.info("Saved preprocessor object")
             # Creating and returning the data transformation artifact
             data_transformation_artifact = DataTransformationArtifact(
-                transformed_train_path=self.data_transformation_config.transformed_train_path,
-                transformed_test_path=self.data_transformation_config.transformed_test_path,
-                preprocessor_obj_file_path=self.data_transformation_config.preprocessor_obj_file_path
+                transformed_train_file_path=transformed_train_path,
+                transformed_test_file_path=transformed_test_path,
+                preprocessor_object_path=preprocessor_object_path
             )
             logging.info("Data transformation completed")
             return data_transformation_artifact

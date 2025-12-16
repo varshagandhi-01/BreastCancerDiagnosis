@@ -1,11 +1,11 @@
 import sys
 from breastcancerdiagnosis.exception.exception_handler import AppException
 from breastcancerdiagnosis.logger.log import logging
-from breastcancerdiagnosis.entity.config_entity import DataIngestionConfig, DataValidationConfig
-from breastcancerdiagnosis.entity.artifact_entity import DataIngestionArtifact, DataValidationArtifact
+from breastcancerdiagnosis.entity.config_entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig
+from breastcancerdiagnosis.entity.artifact_entity import DataIngestionArtifact, DataValidationArtifact, DataTransformationArtifact
 from breastcancerdiagnosis.components.data_ingestion import DataIngestion
 from breastcancerdiagnosis.components.data_validation import DataValidation
-
+from breastcancerdiagnosis.components.data_transformation import DataTransformation
 
 class TrainingPipeline:
     def __init__(self):
@@ -47,6 +47,25 @@ class TrainingPipeline:
         except Exception as e:
             raise AppException(e, sys) from e
         
+    def start_data_transformation(self, data_validation_artifact: DataValidationArtifact,
+                                  data_ingestion_artifact: DataIngestionArtifact) -> DataTransformationArtifact:
+        '''Starts the data transformation process and returns the artifact.'''
+        try:
+            logging.info("Starting data transformation")
+            data_transformation_config = DataTransformationConfig.from_yaml("config/config.yaml")
+            data_transformation = DataTransformation(
+                data_transformation_config=data_transformation_config,
+                data_validation_artifact=data_validation_artifact,
+                data_ingestion_artifact=data_ingestion_artifact
+            )
+            data_transformation_artifact = data_transformation.initiate_data_transformation()
+            logging.info("Data transformation completed")
+
+            return data_transformation_artifact
+
+        except Exception as e:
+            raise AppException(e, sys) from e
+
     def run_pipeline(self):
         try:
             ''' Run the training pipeline steps '''
@@ -57,6 +76,13 @@ class TrainingPipeline:
             ''' Data Validation '''
             data_validation_artifact = self.start_data_validation(data_ingestion_artifact)
             logging.info(f"Data Validation Artifact: {data_validation_artifact}")
+
+            ''' Data Transformation '''
+            data_transformation_artifact = self.start_data_transformation(
+                data_validation_artifact=data_validation_artifact,
+                data_ingestion_artifact=data_ingestion_artifact
+            )
+            logging.info(f"Data Transformation Artifact: {data_transformation_artifact}")
 
         except Exception as e:
             raise AppException(e, sys) from e
