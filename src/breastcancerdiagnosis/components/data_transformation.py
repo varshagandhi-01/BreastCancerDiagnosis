@@ -2,10 +2,12 @@ import os
 import sys
 import pandas as pd
 from pandas import DataFrame
+import numpy as np      
 from scipy.stats import f_oneway
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import PowerTransformer
 from sklearn.compose import ColumnTransformer
+from imblearn.combine import SMOTEENN
 
 from breastcancerdiagnosis.exception.exception_handler import AppException
 from breastcancerdiagnosis.logger.log import logging
@@ -124,10 +126,21 @@ class DataTransformation:
             # Transforming the testing data
             input_feature_test_arr = preprocessor.transform(input_feature_test_df)
 
-            # applying smoteenn to handle class imbalance    
+            # applying smoteenn to handle class imbalance 
+        
+            smt = SMOTEENN(sampling_strategy = "minority")
+            input_feature_train_final, target_feature_train_final = smt.fit_resample(
+                input_feature_train_arr, target_feature_train_df
+            )
+            input_feature_test_final, target_feature_test_final = smt.fit_resample(
+                input_feature_test_arr, target_feature_test_df
+            )
+
+            logging.info("Applied SMOTEENN to handle class imbalance")
+            
             # Combining transformed features with target variable
-            train_arr =  np.c_[input_feature_train_arr, np.array(target_feature_train_df)]
-            test_arr =  np.c_[input_feature_test_arr, np.array(target_feature_test_df)]
+            train_arr =  np.c_[input_feature_train_final, np.array(target_feature_train_final)]
+            test_arr =  np.c_[input_feature_test_final, np.array(target_feature_test_final)]
             logging.info("Saved transformed training and testing arrays")
             # Saving the transformed data
             save_numpy_array_data(self.data_transformation_config.transformed_train_path, array=train_arr)
