@@ -1,8 +1,11 @@
 from dataclasses import dataclass
+from pathlib import Path
 
 @dataclass
 class DataIngestionArtifact:
-    local_data_file_path: str
+    feature_store_file_path: Path
+    trained_file_path: Path
+    test_file_path: Path 
 
 @dataclass
 class DataValidationArtifact:

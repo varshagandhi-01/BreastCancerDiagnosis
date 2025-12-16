@@ -3,12 +3,13 @@ import sys
 import numpy as np
 import dill
 import yaml
+from pathlib import Path
 from pandas import DataFrame
 from huggingface_hub import hf_hub_download
 from breastcancerdiagnosis.logger.log import logging
 from breastcancerdiagnosis.exception.exception_handler import AppException
 
-def read_yaml_file(file_path: str) -> dict:
+def read_yaml_file(file_path: Path) -> dict:
     """
     Read yaml file
     """
@@ -18,8 +19,8 @@ def read_yaml_file(file_path: str) -> dict:
 
     except Exception as e:
         raise AppException(e, sys) from e
-    
-def write_yaml(file_path: str, content: object, replace: bool = False) -> None:
+
+def write_yaml(file_path: Path, content: object, replace: bool = False) -> None:
     """
     write to yaml file
     """
@@ -32,8 +33,8 @@ def write_yaml(file_path: str, content: object, replace: bool = False) -> None:
             yaml.dump(content, file)
     except Exception as e:
         raise AppException(e, sys) from e
-    
-def load_object(file_path: str) -> object:
+
+def load_object(file_path: Path) -> object:
     """
     load object from yaml file
     """
@@ -45,7 +46,7 @@ def load_object(file_path: str) -> object:
     except Exception as e:
         raise AppException(e, sys) from e 
     
-def save_numpy_array_data(file_path: str, array: np.array):
+def save_numpy_array_data(file_path: Path, array: np.array):
     """
     Save numpy array data to file
     file_path: str location of file to save
@@ -60,7 +61,7 @@ def save_numpy_array_data(file_path: str, array: np.array):
     except Exception as e:
         raise AppException(e, sys) from e
     
-def load_numpy_array_data(file_path: str) -> np.array:
+def load_numpy_array_data(file_path: Path) -> np.array:
     """
     load numpy array data from file
     file_path: str location of file to load
@@ -73,7 +74,7 @@ def load_numpy_array_data(file_path: str) -> np.array:
     except Exception as e:
         raise AppException(e, sys) from e 
     
-def save_object(file_path: str, obj: object) -> None:
+def save_object(file_path: Path, obj: object) -> None:
     """
     save object to file
     """
@@ -99,7 +100,7 @@ def drop_columns(df: DataFrame, cols: list) ->DataFrame:
     except Exception as e:
         raise AppException(e, sys) from e 
     
-def download_file_from_hf(source_url: str, local_path: str) -> None:
+def download_file_from_hf(source_url: str, local_path: Path) -> None:
     """
     Download file from huggingface hub
     source_url: str url of the file to be downloaded
@@ -109,7 +110,7 @@ def download_file_from_hf(source_url: str, local_path: str) -> None:
         repo_type, repo_id_1, repo_id_2, filename = source_url.replace("hf://", "").split("/", 3,)[0:4]
 
         logging.info(f"type {repo_type} repo {repo_id_1}/{repo_id_2} filename {filename}")
-        hf_hub_download(repo_id=f'{repo_id_1}/{repo_id_2}', filename=filename, repo_type='dataset', local_dir=os.path.dirname(local_path), local_dir_use_symlinks=False)
+        hf_hub_download(repo_id=f'{repo_id_1}/{repo_id_2}', filename=filename, repo_type='dataset', local_dir=local_path, local_dir_use_symlinks=False)
 
     except Exception as e:
         raise AppException(e, sys) from e
@@ -119,6 +120,7 @@ def create_directories(path_list: list) -> None:
     Create list of directories
     path_list: list of directory paths
     """
+    # need to troubleshoot the issue here with creating directories
     try:
         for path in path_list:
             os.makedirs(path, exist_ok=True)

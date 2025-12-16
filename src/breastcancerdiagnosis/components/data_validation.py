@@ -6,7 +6,7 @@ from breastcancerdiagnosis.exception.exception_handler import AppException
 from breastcancerdiagnosis.logger import logging
 from breastcancerdiagnosis.entity.config_entity import DataValidationConfig
 from breastcancerdiagnosis.entity.artifact_entity import DataIngestionArtifact, DataValidationArtifact
-from breastcancerdiagnosis.utils.main_utils import read_yaml_file
+from breastcancerdiagnosis.utils.main_utils import read_yaml_file, write_yaml_file
 from breastcancerdiagnosis.constants import SCHEMA_FILE_PATH 
 
 class DataValidation:
@@ -48,4 +48,75 @@ class DataValidation:
         except Exception as e:
             raise AppException(e, sys)
         
+    def detect_data_drift(self, base_dataframe: DataFrame,
+                        current_dataframe: DataFrame,
+                        threshold: float = 0.05) -> bool:
+        '''Detects data drift between base and current dataframe using KS test.'''
+        try:
+            '''Assumes both dataframes have the same columns. Prepares a drift report in yaml format. Returns True if drift is detected in any column.'''
+            drift_report = {}
+            drift_detected = False
+            for column in base_dataframe.columns:
+                base_data = base_dataframe[column]
+                current_data = current_dataframe[column]
+                ks_statistic, p_value = ks_2samp(base_data, current_data)
+                if p_value < threshold:
+                    drift_report[column] = {"p_value": float(p_value), "drift_detected": True}
+                    drift_detected = True
+                else:
+                    drift_report[column] = {"p_value": float(p_value), "drift_detected": False}
+            # Save drift report to file
+            drift_report_file_path = self.data_validation_config.drift_report_file_path
+            write_yaml_file(file_path=drift_report_file_path, data=drift_report)
+
+            return drift_detected
+                    
+        except Exception as e:
+            raise AppException(e, sys)
+        
+    def initiate_data_validation(self) -> DataValidationArtifact:
+        '''Main method to initiate data validation process.'''
+        try:
+            logging.info("Starting data validation process")
+            validation_status = True
+            validation_message = ""
+            # Read training and testing data
+            train_dataframe = self.read_data(self.data_ingestion_artifact.train_file_path)
+            test_dataframe = self.read_data(self.data_ingestion_artifact.test_file_path)
+
+            # Validate number of columns
+            if not self.validate_number_of_columns(train_dataframe):
+                validation_status = False
+                validation_message += "Training data does not have the expected number of columns. "
+            if not self.validate_number_of_columns(test_dataframe):
+                validation_status = False
+                validation_message += "Testing data does not have the expected number of columns. "
+
+            # Validate required columns exist
+            if not self.is_column_exist(train_dataframe):
+                validation_status = False
+                validation_message += "Training data is missing required columns"
+            if not self.is_column_exist(test_dataframe):
+                validation_status = False
+                validation_message += "Testing data is missing required columns" 
+
+            # Detect data drift
+            drift_detected = self.detect_data_drift(train_dataframe, test_dataframe, self.data_validation_config.drift_threshold)
+            if drift_detected:
+                validation_message += "Data drift detected between training and testing data. "
+                validation_status = False
+            else:
+                validation_message += "No data drift detected between training and testing data. "
+
+            # Prepare DataValidationArtifact
+            data_validation_artifact = DataValidationArtifact(
+                validation_status=validation_status,
+                validation_message=validation_message
+            )
+
+            logging.info("Data validation process completed successfully")
+            return data_validation_artifact
+
+        except Exception as e:
+            raise AppException(e, sys)
  
