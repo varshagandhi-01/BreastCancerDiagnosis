@@ -77,6 +77,10 @@ class TrainingPipeline:
             data_validation_artifact = self.start_data_validation(data_ingestion_artifact)
             logging.info(f"Data Validation Artifact: {data_validation_artifact}")
 
+            if data_ingestion_artifact.validation_status == False:
+                logging.info("Data Validation failed. Exiting the pipeline.")
+                return
+            
             ''' Data Transformation '''
             data_transformation_artifact = self.start_data_transformation(
                 data_validation_artifact=data_validation_artifact,
