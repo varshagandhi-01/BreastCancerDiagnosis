@@ -14,7 +14,7 @@ class DataIngestionConfig:
     train_test_split_ratio: float
 
     @classmethod
-    def from_yaml(cls, config_path: str) -> "DataIngestionConfig":
+    def from_yaml(cls, config_path: Path) -> "DataIngestionConfig":
         try:
             config = read_yaml_file(config_path)
             data_ingestion_config = config.get("data_ingestion", {})
@@ -31,18 +31,18 @@ class DataIngestionConfig:
 
 @dataclass
 class DataValidationConfig:
-    root_dir: str
-    report_file_path: str
+    root_dir: Path
+    report_file_path: Path
     drift_threshold: float
 
     @classmethod
-    def from_yaml(cls, config_path: str) -> "DataValidationConfig":
+    def from_yaml(cls, config_path: Path) -> "DataValidationConfig":
         try:
             config = read_yaml_file(config_path)
             data_validation_config = config.get("data_validation", {})
             return cls(
-                root_dir=data_validation_config.get("root_dir", ""),
-                drift_report_file=data_validation_config.get("drift_report_file", ""),
+                root_dir=Path(data_validation_config.get("root_dir", "")),
+                report_file_path=Path(data_validation_config.get("report_file_path", "")),
                 drift_threshold=data_validation_config.get("drift_threshold", 0.0)
             )
         except Exception as e:

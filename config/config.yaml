@@ -9,9 +9,8 @@ data_ingestion:
 
 data_validation:
   root_dir: data/data_validation
-  base_file: data/data_ingestion/data.csv
-  drift_report_file: drift_report.yaml
-  drift_threshold: 0.5
+  report_file_path: drift_report.yaml
+  drift_threshold: 0.04
 
 data_transformation: 
   root_dir: data/data_transformation

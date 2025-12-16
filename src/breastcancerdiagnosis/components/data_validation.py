@@ -1,12 +1,14 @@
+import os 
 import sys
 import pandas as pd
 from pandas import DataFrame
 from scipy.stats import ks_2samp
+from pathlib import Path
 from breastcancerdiagnosis.exception.exception_handler import AppException
-from breastcancerdiagnosis.logger import logging
+from breastcancerdiagnosis.logger.log import logging
 from breastcancerdiagnosis.entity.config_entity import DataValidationConfig
 from breastcancerdiagnosis.entity.artifact_entity import DataIngestionArtifact, DataValidationArtifact
-from breastcancerdiagnosis.utils.main_utils import read_yaml_file, write_yaml_file
+from breastcancerdiagnosis.utils.main_utils import read_yaml_file, write_yaml
 from breastcancerdiagnosis.constants import SCHEMA_FILE_PATH 
 
 class DataValidation:
@@ -15,7 +17,7 @@ class DataValidation:
         try:
             self.data_validation_config = data_validation_config
             self.data_ingestion_artifact = data_ingestion_artifact
-            self._schema = self.read_yaml_file(SCHEMA_FILE_PATH)
+            self._schema = read_yaml_file(SCHEMA_FILE_PATH)
         except Exception as e:
             raise AppException(e, sys)
         
@@ -56,6 +58,12 @@ class DataValidation:
             '''Assumes both dataframes have the same columns. Prepares a drift report in yaml format. Returns True if drift is detected in any column.'''
             drift_report = {}
             drift_detected = False
+            drop_columns = self._schema['drop_columns']
+            print(f"Drop columns: {drop_columns}")
+            base_dataframe = base_dataframe.drop(columns=drop_columns, errors='ignore')
+            print(f"Base dataframe columns after drop: {base_dataframe.columns}")
+            current_dataframe = current_dataframe.drop(columns=drop_columns, errors='ignore')
+
             for column in base_dataframe.columns:
                 base_data = base_dataframe[column]
                 current_data = current_dataframe[column]
@@ -66,8 +74,8 @@ class DataValidation:
                 else:
                     drift_report[column] = {"p_value": float(p_value), "drift_detected": False}
             # Save drift report to file
-            drift_report_file_path = self.data_validation_config.drift_report_file_path
-            write_yaml_file(file_path=drift_report_file_path, data=drift_report)
+            drift_report_file_path = os.path.join(self.data_validation_config.root_dir, self.data_validation_config.report_file_path)
+            write_yaml(file_path=drift_report_file_path, content=drift_report, replace=True)
 
             return drift_detected
                     
@@ -102,6 +110,7 @@ class DataValidation:
 
             # Detect data drift
             drift_detected = self.detect_data_drift(train_dataframe, test_dataframe, self.data_validation_config.drift_threshold)
+            print(f"Drift detected: {drift_detected}")
             if drift_detected:
                 validation_message += "Data drift detected between training and testing data. "
                 validation_status = False

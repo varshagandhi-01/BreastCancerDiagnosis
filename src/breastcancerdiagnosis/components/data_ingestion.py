@@ -34,7 +34,7 @@ class DataIngestion:
             ''' Prepare the data ingestion artifact '''
             data_ingestion_artifact = DataIngestionArtifact(
                 feature_store_file_path=feature_store_file_path,
-                trained_file_path=Path(os.path.join(self.config.root_dir, self.config.ingested_data_dir, TRAIN_FILE_NAME)),
+                train_file_path=Path(os.path.join(self.config.root_dir, self.config.ingested_data_dir, TRAIN_FILE_NAME)),
                 test_file_path=Path(os.path.join(self.config.root_dir, self.config.ingested_data_dir, TEST_FILE_NAME))
             )
             logging.info(f"Data Ingestion artifact: {data_ingestion_artifact}")
