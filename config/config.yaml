@@ -14,7 +14,7 @@ data_validation:
 
 data_transformation: 
   root_dir: data/data_transformation
-  transformed_data_file: transformed_data.csv
+  transformed_data_dir: transformed
   preprocessor_object_file: preprocessor.pkl
 
 model_trainer:

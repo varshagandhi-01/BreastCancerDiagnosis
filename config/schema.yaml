@@ -73,3 +73,7 @@ categorical_columns:
 drop_columns:
   id: int  
   "Unnamed: 32": float64
+
+target_mapping:
+  B: 0
+  M: 1  

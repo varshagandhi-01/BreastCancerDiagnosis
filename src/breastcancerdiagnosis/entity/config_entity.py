@@ -47,3 +47,23 @@ class DataValidationConfig:
             )
         except Exception as e:
             raise AppException(e, os) from e
+        
+@dataclass
+class DataTransformationConfig:
+    root_dir: Path
+    transformed_data_dir: Path
+    preprocessor_object_file: str
+
+    @classmethod
+    def from_yaml(cls, config_path: Path) -> "DataTransformationConfig":
+        try:
+            config = read_yaml_file(config_path)
+            data_transformation_config = config.get("data_transformation", {})
+            return cls(
+                root_dir=Path(data_transformation_config.get("root_dir", "")),
+                transformed_data_dir=Path(data_transformation_config.get("transformed_data_dir", "")),
+                preprocessor_object_file=data_transformation_config.get("preprocessor_object_file", "")
+            )
+        except Exception as e:
+            raise AppException(e, os) from e
+        
