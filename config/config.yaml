@@ -1,3 +1,4 @@
+# Configuration file for Breast Cancer Diagnosis ML Pipeline
 artifacts_root: data
 
 data_ingestion:
@@ -21,7 +22,7 @@ model_trainer:
   root_dir: data/model_trainer
   trained_model_file: model.pkl
   expected_score: 0.9
-  overfitting_threshold: 0.1
+  model_config_file_path: config/model.yaml
   
 model_evaluation:
   root_dir: data/model_evaluation

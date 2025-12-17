@@ -88,5 +88,7 @@ class TrainingPipeline:
             )
             logging.info(f"Data Transformation Artifact: {data_transformation_artifact}")
 
+            ''' Model Training '''
+
         except Exception as e:
             raise AppException(e, sys) from e

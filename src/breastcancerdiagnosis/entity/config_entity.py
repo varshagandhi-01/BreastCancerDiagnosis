@@ -66,4 +66,24 @@ class DataTransformationConfig:
             )
         except Exception as e:
             raise AppException(e, os) from e
-        
+
+@dataclass
+class ModelTrainerConfig:
+    root_dir: Path
+    trained_model_file: str
+    expected_score: float
+    model_config_file_path: Path
+
+    @classmethod
+    def from_yaml(cls, config_path: Path) -> "ModelTrainerConfig":
+        try:
+            config = read_yaml_file(config_path)
+            model_trainer_config = config.get("model_trainer", {})
+            return cls(
+                root_dir=Path(model_trainer_config.get("root_dir", "")),
+                trained_model_file=model_trainer_config.get("trained_model_file", ""),
+                expected_score=model_trainer_config.get("expected_score", 0.0),
+                model_config_file_path=Path(model_trainer_config.get("model_config_file_path", ""))
+            )
+        except Exception as e:
+            raise AppException(e, os) from e    
