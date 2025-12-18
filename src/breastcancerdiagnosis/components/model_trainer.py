@@ -29,7 +29,7 @@ class ModelTrainer:
             raise AppException(e, sys) from e 
         
     def get_best_model_object_and_report(X_train: np.ndarray, y_train: np.ndarray,
-                                    X_test: np.ndarray, y_test: np.ndarray):
+                                    X_test: np.ndarray, y_test: np.ndarray, target_accuracy: float):
         try:
            # Hyper parameter tuning
             logistic_regression_params = {
@@ -70,7 +70,7 @@ class ModelTrainer:
 
             model_report = {}
             best_model = None
-            best_accuracy = 0
+            best_accuracy = target_accuracy
 
             for model_name, model, params in randomcv_models:
                 model = model.__class__(**model_params[model_name])
@@ -95,9 +95,13 @@ class ModelTrainer:
 
                 logging.info(f"Model: {model_name}, Accuracy: {accuracy}, Precision: {precision}, Recall: {recall}, F1 Score: {f1}")
 
-            logging.info(f"Best Model is {best_mode_name}")
-
-            return model_report, best_model, best_model_metric_artifact
+            if best_model is None:
+                logging.info("No Model meets the target accuracy criteria")
+                return 
+            else:
+                logging.info(f"Best Model is {best_mode_name}")
+                return model_report, best_model, best_model_metric_artifact
+            
         except Exception as e:
             raise AppException(e, sys) from e
         
@@ -115,7 +119,8 @@ class ModelTrainer:
             y_test = test_array[:, -1]
 
             logging.info("Training the model")
-            model_report, best_model, best_model_metric_artifact = ModelTrainer.get_best_model_object_and_report(X_train, y_train, X_test, y_test)
+            model_report, best_model, best_model_metric_artifact = ModelTrainer.get_best_model_object_and_report(
+                X_train, y_train, X_test, y_test, self.model_trainer_config.expected_score)
 
             write_yaml(file_path=Path(os.path.join(self.model_trainer_config.root_dir,"model_report.yaml")),
                        content=model_report, replace=True)
