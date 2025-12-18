@@ -1,4 +1,5 @@
 import os
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from breastcancerdiagnosis.utils.main_utils import read_yaml_file
@@ -26,7 +27,7 @@ class DataIngestionConfig:
                 train_test_split_ratio=data_ingestion_config.get("train_test_split_ratio", 0.0)
             )
         except Exception as e:
-            raise AppException(e, os) from e
+            raise AppException(e, sys) from e
     
 
 @dataclass
@@ -46,7 +47,7 @@ class DataValidationConfig:
                 drift_threshold=data_validation_config.get("drift_threshold", 0.0)
             )
         except Exception as e:
-            raise AppException(e, os) from e
+            raise AppException(e, sys ) from e
         
 @dataclass
 class DataTransformationConfig:
@@ -65,7 +66,7 @@ class DataTransformationConfig:
                 preprocessor_object_file=data_transformation_config.get("preprocessor_object_file", "")
             )
         except Exception as e:
-            raise AppException(e, os) from e
+            raise AppException(e, sys) from e
 
 @dataclass
 class ModelTrainerConfig:
@@ -86,4 +87,24 @@ class ModelTrainerConfig:
                 model_config_file_path=Path(model_trainer_config.get("model_config_file_path", ""))
             )
         except Exception as e:
-            raise AppException(e, os) from e    
+            raise AppException(e, sys) from e    
+        
+@dataclass
+class ModelEvaluationConfig:
+    root_dir: Path 
+    model_comparison_file: str
+    change_threshold: float
+
+    @classmethod
+    def from_yaml(cls, config_path: Path) -> "ModelEvaluationConfig":
+        try:
+            config = read_yaml_file(config_path)
+            model_evaluation_config = config.get("model_evaluation", {})
+            return cls(
+                root_dir = Path(model_evaluation_config.get("root_dir", "")),
+                model_comparison_file = model_evaluation_config.get("model_comparison_file",""),
+                change_threshold = model_evaluation_config.get("change_threshold","")
+            )
+        except Exception as e:
+            raise AppException(e, sys) from e
+
