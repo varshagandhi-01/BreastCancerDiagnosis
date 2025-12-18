@@ -1,18 +1,26 @@
 import sys
 from breastcancerdiagnosis.exception.exception_handler import AppException
 from breastcancerdiagnosis.logger.log import logging
-from breastcancerdiagnosis.entity.config_entity import DataIngestionConfig, DataValidationConfig, DataTransformationConfig
-from breastcancerdiagnosis.entity.artifact_entity import DataIngestionArtifact, DataValidationArtifact, DataTransformationArtifact
+from breastcancerdiagnosis.entity.config_entity import (DataIngestionConfig, 
+                                                        DataValidationConfig, 
+                                                        DataTransformationConfig, 
+                                                        ModelTrainerConfig)
+from breastcancerdiagnosis.entity.artifact_entity import (DataIngestionArtifact, 
+                                                        DataValidationArtifact, 
+                                                        DataTransformationArtifact, 
+                                                        ModelTrainerArtifact)
 from breastcancerdiagnosis.components.data_ingestion import DataIngestion
 from breastcancerdiagnosis.components.data_validation import DataValidation
 from breastcancerdiagnosis.components.data_transformation import DataTransformation
+from breastcancerdiagnosis.components.model_trainer import ModelTrainer
 
 class TrainingPipeline:
     def __init__(self):
         try:    
             self.data_ingestion_config = DataIngestionConfig.from_yaml("config/config.yaml")
             self.data_validation_config = DataValidationConfig.from_yaml("config/config.yaml")
-
+            self.data_transformation_config = DataTransformationConfig.from_yaml("config/config.yaml")
+            self.model_trainer_config = ModelTrainerConfig.from_yaml("config/config.yaml")
         except Exception as e:
             raise AppException(e, sys) from e
 
@@ -65,6 +73,22 @@ class TrainingPipeline:
 
         except Exception as e:
             raise AppException(e, sys) from e
+        
+    def start_model_trainer(self, data_transformation_artifact: DataTransformationArtifact) -> ModelTrainerArtifact:
+        '''Starts the model training process and returns the artifact.'''
+        try:
+            logging.info("Starting model training")
+            model_trainer = ModelTrainer(
+                model_trainer_config=self.model_trainer_config,
+                data_transformation_artifact=data_transformation_artifact
+            )
+            model_trainer_artifact = model_trainer.initiate_model_trainer()
+            logging.info("Model training completed")
+
+            return model_trainer_artifact
+
+        except Exception as e:
+            raise AppException(e, sys) from e
 
     def run_pipeline(self):
         try:
@@ -77,7 +101,7 @@ class TrainingPipeline:
             data_validation_artifact = self.start_data_validation(data_ingestion_artifact)
             logging.info(f"Data Validation Artifact: {data_validation_artifact}")
 
-            if data_ingestion_artifact.validation_status == False:
+            if data_validation_artifact.validation_status == False:
                 logging.info("Data Validation failed. Exiting the pipeline.")
                 return
             
@@ -89,6 +113,9 @@ class TrainingPipeline:
             logging.info(f"Data Transformation Artifact: {data_transformation_artifact}")
 
             ''' Model Training '''
+            model_trainer_artifact = self.start_model_trainer(
+                data_transformation_artifact=data_transformation_artifact
+            )
 
         except Exception as e:
             raise AppException(e, sys) from e

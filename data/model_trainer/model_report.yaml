@@ -1,0 +1,55 @@
+AdaBoostClassifier:
+  accuracy: 0.9844961240310077
+  f1: !!python/object/apply:numpy.core.multiarray.scalar
+  - &id001 !!python/object/apply:numpy.dtype
+    args:
+    - f8
+    - false
+    - true
+    state: !!python/tuple
+    - 3
+    - <
+    - null
+    - null
+    - null
+    - -1
+    - -1
+    - 0
+  - !!binary |
+    Ij1QObuF7z8=
+  precision: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    Ij1QObuF7z8=
+  recall: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    Ij1QObuF7z8=
+LogisticRegression:
+  accuracy: 0.9922480620155039
+  f1: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    JvyZ8GfC7z8=
+  precision: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    AAAAAAAA8D8=
+  recall: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    Ij1QObuF7z8=
+SVClassifier:
+  accuracy: 0.9767441860465116
+  f1: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    n/RJn/RJ7z8=
+  precision: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    Dw8PDw8P7z8=
+  recall: !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    Ij1QObuF7z8=
